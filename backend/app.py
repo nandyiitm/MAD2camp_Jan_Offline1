@@ -7,6 +7,11 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 from models import db, User
 db.init_app(app)
 
+# jwt config
+app.config['JWT_SECRET_KEY'] = 'your_secret_key'
+from flask_jwt_extended import JWTManager
+jwt = JWTManager(app)
+
 # config routes
 from routes import api
 api.init_app(app)

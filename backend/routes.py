@@ -1,5 +1,6 @@
 from flask_restful import Resource, Api
 from flask import request
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 
 api = Api()
 
@@ -21,12 +22,18 @@ class Login(Resource):
         user = User.query.filter_by(email=data['email']).first()
         if not user or user.password != data['password']:
             return {'message': 'Invalid email or password'}, 401
-        return {'message': f'Successfully logged in as {user.name}', 'user': {
-            'id': user.id,
-            'name': user.name,
-            'email': user.email,
-            'role': user.role
-        }}, 200
+        # user is authenticated, create JWT token
+        token = create_access_token(identity=user.email)
+        return {
+            'message': f'Successfully logged in as {user.name}', 
+            'token': token,
+            'user': {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email,
+                'role': user.role
+            }
+        }, 200
 api.add_resource(Login, '/login')
     
 class Register(Resource):
@@ -56,6 +63,7 @@ api.add_resource(Register, '/register')
     
 ### Admin endpoits
 class Users_info(Resource):
+    @jwt_required()
     def get(self, user_id=None):
         if user_id is not None:
             user = User.query.get(user_id)
@@ -86,7 +94,12 @@ class Users_info(Resource):
             'users': users_list
         }, 200
     
+    @jwt_required()
     def post(self):
+        current_user = User.query.filter_by(email=get_jwt_identity()).first()
+        if not current_user or current_user.role != 'admin':
+            return {'message': 'You do not have permission to create a new user'}, 403
+
         data = request.get_json()
         print('Received data:', data)
 
@@ -110,6 +123,7 @@ class Users_info(Resource):
 
         return {'message': f'Successfully created user with id {new_user.id}', 'user': user_dict}, 201
     
+    @jwt_required()
     def put(self, user_id=None):
         if user_id is None:
             return {'message': 'user_id is required'}, 400
@@ -134,9 +148,7 @@ class Users_info(Resource):
             'role': user.role
         }}, 200
     
-    def patch(self, user_id=None):
-        return {'message': 'Patch method received'}
-    
+    @jwt_required()
     def delete(self, user_id=None):
         if user_id is None:
             return {'message': 'user_id is required'}, 400
