@@ -2,6 +2,10 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
+# enabling CORS for all routes and origins
+from flask_cors import CORS
+CORS(app)
+
 # config db
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 from models import db, User

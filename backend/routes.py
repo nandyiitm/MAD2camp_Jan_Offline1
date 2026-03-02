@@ -13,10 +13,16 @@ from models import User, db
 
 # this is what we are doing in mad2, i.e creating api
 
+class HelloWorld(Resource):
+    def get(self):
+        return {'message': 'Hello, World fron backend!'}
+api.add_resource(HelloWorld, '/api/hello')
+
 ### Auth endpoints
 class Login(Resource):
     def post(self):
         data = request.get_json()
+        print('Received login data:', data)
         if 'email' not in data or 'password' not in data:
             return {'message': 'Email and password are required'}, 400
         user = User.query.filter_by(email=data['email']).first()
@@ -39,6 +45,7 @@ api.add_resource(Login, '/login')
 class Register(Resource):
     def post(self):
         data = request.get_json()
+        print('Received registration data:', data)
         if 'name' not in data or 'email' not in data or 'password' not in data:
             return {'message': "name, email, and password are required"}, 400
         
@@ -65,6 +72,10 @@ api.add_resource(Register, '/register')
 class Users_info(Resource):
     @jwt_required()
     def get(self, user_id=None):
+        current_user = User.query.filter_by(email=get_jwt_identity()).first()
+        if not current_user or current_user.role != 'admin':
+            return {'message': 'You do not have permission to create a new user'}, 403
+
         if user_id is not None:
             user = User.query.get(user_id)
             if not user:
