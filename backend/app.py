@@ -18,7 +18,8 @@ jwt = JWTManager(app)
 
 # config routes
 from routes import api, cache
-app.config['CACHE_TYPE'] = 'SimpleCache'
+app.config['CACHE_TYPE'] = 'RedisCache'
+app.config['CACHE_REDIS_URL'] = 'redis://localhost:6379/0'
 app.config['CACHE_DEFAULT_TIMEOUT'] = 30
 cache.init_app(app)  # Initialize cache with the Flask app
 api.init_app(app)    # initialize api with the Flask app
