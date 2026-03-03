@@ -193,5 +193,14 @@ api.add_resource(Users_info, '/users', '/users/<int:user_id>')
 
 
 ### User endpoints
+from celery_app import create_report
 
+class ReportGeneration(Resource):
+    @jwt_required()
+    def get(self):
+        current_user = User.query.filter_by(email=get_jwt_identity()).first()
+        # Simulate a long-running report generation task
+        task = create_report.delay(current_user.email)
 
+        return {'message': f'Report generation task started with ID: {task.id}, we will send you a mail once it is done :)'}, 200
+api.add_resource(ReportGeneration, '/generate_report')
