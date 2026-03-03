@@ -1,8 +1,12 @@
 from flask_restful import Resource, Api
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+import time
 
 api = Api()
+
+from flask_caching import Cache
+cache = Cache()
 
 from models import User, db
 
@@ -67,6 +71,20 @@ class Register(Resource):
         return {'message': f'Successfully registered user with id {new_user.id}', 'user': user_dict}, 201
 api.add_resource(Register, '/register')
 
+class Statistics(Resource):
+    # @jwt_required()
+    @cache.cached(timeout=30)  # Cache the results of this endpoint for 30 seconds
+    def get(self):
+        # For demonstration, we'll just return some dummy statistics
+
+        #### some time taking database queries can be done here, for example:
+        time.sleep(10)  # Simulate a time-consuming operation
+
+        stats = {
+            'total_users': '1000000000000000000'
+        }
+        return {'message': 'Successfully retrieved statistics', 'statistics': stats}, 200
+api.add_resource(Statistics, '/statistics')
     
 ### Admin endpoits
 class Users_info(Resource):

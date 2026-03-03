@@ -17,8 +17,11 @@ from flask_jwt_extended import JWTManager
 jwt = JWTManager(app)
 
 # config routes
-from routes import api
-api.init_app(app)
+from routes import api, cache
+app.config['CACHE_TYPE'] = 'SimpleCache'
+app.config['CACHE_DEFAULT_TIMEOUT'] = 30
+cache.init_app(app)  # Initialize cache with the Flask app
+api.init_app(app)    # initialize api with the Flask app
 
 if __name__ == '__main__':
 
