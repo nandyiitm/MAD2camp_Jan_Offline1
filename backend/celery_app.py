@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from celery import Celery
 from celery.schedules import crontab
 
@@ -23,3 +25,19 @@ def create_report(user_email):
     return f"Report created successfully for user: {user_email}"
 
 
+@celery_app.task(name='tasks.send_daily_reminders')
+def send_daily_reminders():
+    from models import User
+    from app import app
+    with app.app_context():
+        for user in User.query.all():
+            send_email("Daily Reminder", "This is your daily reminder email.", user.email)
+    return f"Daily reminders sent to all users."
+
+celery_app.conf.beat_schedule = {
+    'daily_reminder': {
+        'task': 'tasks.send_daily_reminders',
+        # 'schedule': crontab(hour=18, minute=8),  # Every day at 9:00 AM
+        'schedule': timedelta(seconds=3),  # For testing, run every 30 seconds
+    }
+}
